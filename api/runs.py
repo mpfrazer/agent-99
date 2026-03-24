@@ -153,9 +153,11 @@ async def _run_task(run: RunState, config: AgentConfig, agent_raw: dict) -> None
     finally:
         run.completed_at = datetime.now(timezone.utc).isoformat()
         _save_run(run, agent_raw)
-        # sentinel to close SSE streams
+        # Sentinel closes any connected SSE stream
         await run.queue.put(None)
-        _active.pop(run.id, None)
+        # Delay removal so late-joining SSE clients can still connect and
+        # replay accumulated events (handles fast-failing agents)
+        asyncio.get_event_loop().call_later(120, _active.pop, run.id, None)
 
 
 # ---------------------------------------------------------------------------
@@ -203,9 +205,15 @@ async def stream_run(run_id: str, user: str = Depends(require_auth)):
         raise HTTPException(status_code=404, detail="Run not found or already completed")
 
     async def event_generator():
+        import json
+
         # Replay accumulated events for late-joiners
         for evt in run.events:
-            yield {"data": __import__("json").dumps(evt)}
+            yield {"data": json.dumps(evt)}
+
+        # If the run already finished, events list ends with done/error/cancelled
+        if run.status in ("completed", "error", "cancelled"):
+            return
 
         # Stream live events
         while True:
@@ -226,7 +234,7 @@ async def stream_run(run_id: str, user: str = Depends(require_auth)):
                     if tc["name"] == evt.data.get("name") and tc["result"] is None:
                         tc["result"] = evt.data.get("result")
                         break
-            yield {"data": __import__("json").dumps(event_dict)}
+            yield {"data": json.dumps(event_dict)}
             if evt.type in ("done", "error", "cancelled"):
                 break
 
