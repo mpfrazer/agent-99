@@ -22,7 +22,6 @@ CONFIG_FILE = CONFIG_DIR / "config.yaml"
 
 IS_WIN = platform.system() == "Windows"
 PYTHON = VENV / ("Scripts" if IS_WIN else "bin") / ("python.exe" if IS_WIN else "python")
-PIP = VENV / ("Scripts" if IS_WIN else "bin") / ("pip.exe" if IS_WIN else "pip")
 
 
 def banner(msg: str) -> None:
@@ -64,13 +63,16 @@ def create_venv() -> None:
         print("  ↩  .venv already exists, skipping")
         return
     run([sys.executable, "-m", "venv", str(VENV)])
+    # Ensure pip is available (Ubuntu omits it when ensurepip is missing)
+    if not (VENV / ("Scripts" if IS_WIN else "bin") / ("pip.exe" if IS_WIN else "pip")).exists():
+        run([str(PYTHON), "-m", "ensurepip", "--upgrade"])
     print("  ✓ Created .venv")
 
 
 def install_python_deps() -> None:
     banner("Installing Python dependencies")
-    run([str(PIP), "install", "--upgrade", "pip", "--quiet"])
-    run([str(PIP), "install", "-e", ".[web]", "--quiet"])
+    run([str(PYTHON), "-m", "pip", "install", "--upgrade", "pip", "--quiet"])
+    run([str(PYTHON), "-m", "pip", "install", "-e", ".[web]", "--quiet"])
     print("  ✓ Python dependencies installed")
 
 
