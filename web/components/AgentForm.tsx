@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { agents as agentsApi } from '@/lib/api';
+import { agents as agentsApi, tools as toolsApi } from '@/lib/api';
 import type { AgentConfig } from '@/lib/types';
 
 const DEFAULTS: AgentConfig = {
@@ -18,8 +18,6 @@ const DEFAULTS: AgentConfig = {
   stream_output: true,
 };
 
-const BUILT_IN_TOOLS = ['read_file', 'write_file', 'list_dir'];
-
 interface Props {
   initial?: AgentConfig;
   mode: 'create' | 'edit';
@@ -30,6 +28,11 @@ export default function AgentForm({ initial, mode }: Props) {
   const [form, setForm] = useState<AgentConfig>(initial ?? DEFAULTS);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [availableTools, setAvailableTools] = useState<{ name: string; description: string }[]>([]);
+
+  useEffect(() => {
+    toolsApi.list().then(setAvailableTools).catch(() => {});
+  }, []);
 
   const set = <K extends keyof AgentConfig>(key: K, value: AgentConfig[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -156,22 +159,27 @@ export default function AgentForm({ initial, mode }: Props) {
       {/* Tools */}
       <section className="bg-white rounded-xl border border-slate-200 p-6 space-y-4">
         <h2 className="font-semibold text-slate-900">Tools</h2>
-        <div className="flex flex-wrap gap-2">
-          {BUILT_IN_TOOLS.map((tool) => (
-            <button
-              key={tool}
-              type="button"
-              onClick={() => toggleTool(tool)}
-              className={`px-3 py-1.5 rounded-full text-sm font-mono font-medium border transition-colors ${
-                form.tools.includes(tool)
-                  ? 'bg-indigo-600 text-white border-indigo-600'
-                  : 'bg-white text-slate-600 border-slate-300 hover:border-indigo-400'
-              }`}
-            >
-              {tool}
-            </button>
-          ))}
-        </div>
+        {availableTools.length === 0 ? (
+          <p className="text-sm text-slate-400">Loading tools…</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {availableTools.map(({ name, description }) => (
+              <button
+                key={name}
+                type="button"
+                title={description}
+                onClick={() => toggleTool(name)}
+                className={`px-3 py-1.5 rounded-full text-sm font-mono font-medium border transition-colors ${
+                  form.tools.includes(name)
+                    ? 'bg-indigo-600 text-white border-indigo-600'
+                    : 'bg-white text-slate-600 border-slate-300 hover:border-indigo-400'
+                }`}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Memory & Streaming */}
