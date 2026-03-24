@@ -3,14 +3,12 @@
 import secrets
 from pathlib import Path
 
+import bcrypt
 import yaml
-from passlib.context import CryptContext
 
 _CONFIG_DIR = Path.home() / ".agent99"
 _CONFIG_FILE = _CONFIG_DIR / "config.yaml"
 _RUNS_DIR = _CONFIG_DIR / "runs"
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def config_dir() -> Path:
@@ -56,12 +54,12 @@ def verify_password(plain: str) -> bool:
     h = cfg.get("password_hash")
     if not h:
         return False
-    return pwd_context.verify(plain, h)
+    return bcrypt.checkpw(plain.encode(), h.encode())
 
 
 def set_password(plain: str) -> None:
     cfg = load_config()
-    cfg["password_hash"] = pwd_context.hash(plain)
+    cfg["password_hash"] = bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
     save_config(cfg)
 
 

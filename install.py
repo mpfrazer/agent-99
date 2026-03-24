@@ -122,10 +122,8 @@ def setup_config() -> None:
         break
 
     # Hash and save
-    sys.path.insert(0, str(ROOT))
-    from passlib.context import CryptContext
-    ctx = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    cfg["password_hash"] = ctx.hash(pw)
+    import bcrypt
+    cfg["password_hash"] = bcrypt.hashpw(pw.encode(), bcrypt.gensalt()).decode()
     CONFIG_FILE.write_text(yaml.safe_dump(cfg))
     print("  ✓ Password saved to ~/.agent99/config.yaml")
 
