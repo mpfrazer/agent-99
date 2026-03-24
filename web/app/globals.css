@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-mono: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+}
+
+/* Form inputs */
+.input {
+  @apply w-full px-3 py-2 rounded-lg border border-slate-300 text-sm text-slate-900
+         bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent
+         disabled:bg-slate-100 disabled:text-slate-400 transition-shadow;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { @apply bg-transparent; }
+::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }

@@ -14,11 +14,22 @@ dependencies = [
     "typer",
 ]
 
+[project.optional-dependencies]
+web = [
+    "fastapi>=0.111",
+    "uvicorn[standard]",
+    "passlib[bcrypt]",
+    "python-jose[cryptography]",
+    "python-multipart",
+    "sse-starlette",
+    "aiofiles",
+]
+
 [project.scripts]
 agent99 = "agent99.cli:app"
 
 [tool.hatch.build.targets.wheel]
-packages = ["agent99"]
+packages = ["agent99", "api", "tools"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

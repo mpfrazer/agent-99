@@ -22,6 +22,7 @@ class AgentConfig(BaseModel):
     max_iterations: int = 20
     temperature: float = 0.7
     api_base: str | None = None
+    stream_output: bool = True
 
     @field_validator("name")
     @classmethod
