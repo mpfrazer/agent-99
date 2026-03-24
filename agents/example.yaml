@@ -1,0 +1,14 @@
+name: file-reader
+description: An agent that reads files and answers questions about them.
+model: ollama/mistral
+system_prompt: |
+  You are a helpful assistant. Use tools when appropriate.
+  When asked about a file, read it first before answering.
+tools:
+  - read_file
+  - list_dir
+memory:
+  type: none
+max_iterations: 20
+temperature: 0.7
+api_base: http://192.168.2.107:11434
