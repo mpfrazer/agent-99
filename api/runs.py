@@ -21,13 +21,23 @@ from api.auth import require_auth
 from api.app_config import runs_dir
 
 import importlib
+from pathlib import Path as _Path
 
 router = APIRouter(prefix="/runs", tags=["runs"])
 
-_TOOL_MODULES = ["tools.filesystem"]
-
 # In-memory active runs
 _active: dict[str, "RunState"] = {}
+
+
+def _discover_tool_modules() -> list[str]:
+    """Return importable module paths for every .py file in tools/."""
+    tools_dir = _Path(__file__).parent.parent / "tools"
+    modules = []
+    for f in sorted(tools_dir.glob("*.py")):
+        if f.name.startswith("_"):
+            continue
+        modules.append(f"tools.{f.stem}")
+    return modules
 
 
 # ---------------------------------------------------------------------------
@@ -71,7 +81,7 @@ class StartRunRequest(BaseModel):
 
 def _build_registry() -> ToolRegistry:
     registry = ToolRegistry()
-    for mod_path in _TOOL_MODULES:
+    for mod_path in _discover_tool_modules():
         try:
             module = importlib.import_module(mod_path)
             registry.register_module(module)

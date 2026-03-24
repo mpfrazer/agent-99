@@ -14,9 +14,6 @@ from agent99.registry import ToolRegistry, build_schema
 
 app = typer.Typer(help="agent-99: a lightweight local AI agent runner.")
 
-# Tool modules auto-registered for every agent run
-_TOOL_MODULES: list[str] = ["tools.filesystem"]
-
 _NEW_AGENT_TEMPLATE = """\
 name: {name}
 description: ""
@@ -32,11 +29,14 @@ temperature: 0.7
 
 
 def _build_registry() -> ToolRegistry:
+    import importlib
     registry = ToolRegistry()
-    for module_path in _TOOL_MODULES:
+    tools_dir = Path(__file__).parent.parent / "tools"
+    for f in sorted(tools_dir.glob("*.py")):
+        if f.name.startswith("_"):
+            continue
         try:
-            import importlib
-            module = importlib.import_module(module_path)
+            module = importlib.import_module(f"tools.{f.stem}")
             registry.register_module(module)
         except ImportError:
             pass
