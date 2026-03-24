@@ -123,3 +123,7 @@ def tools() -> None:
         name = fn["name"]
         desc = fn.get("description", "")
         typer.echo(f"  {name:<20} {desc}")
+
+
+if __name__ == "__main__":
+    app()
