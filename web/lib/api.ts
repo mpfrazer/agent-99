@@ -54,7 +54,7 @@ export const auth = {
 // ---------------------------------------------------------------------------
 
 export const tools = {
-  list: () => request<{ name: string; description: string }[]>('/tools'),
+  list: () => request<{ name: string; description: string; category: string }[]>('/tools'),
 };
 
 // ---------------------------------------------------------------------------
