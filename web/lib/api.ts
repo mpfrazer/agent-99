@@ -71,6 +71,27 @@ export const gmail = {
 };
 
 // ---------------------------------------------------------------------------
+// Google Calendar
+// ---------------------------------------------------------------------------
+
+export const calendar = {
+  status: () =>
+    request<{ connected: boolean; email: string | null }>('/calendar/status'),
+
+  saveCredentials: (clientId: string, clientSecret: string) =>
+    request<{ ok: boolean }>('/calendar/credentials', {
+      method: 'POST',
+      body: JSON.stringify({ client_id: clientId, client_secret: clientSecret }),
+    }),
+
+  getAuthUrl: () =>
+    request<{ url: string }>('/calendar/auth-url'),
+
+  disconnect: () =>
+    request<{ ok: boolean }>('/calendar/disconnect', { method: 'DELETE' }),
+};
+
+// ---------------------------------------------------------------------------
 // Tools
 // ---------------------------------------------------------------------------
 
