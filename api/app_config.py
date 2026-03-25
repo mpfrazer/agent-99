@@ -142,3 +142,55 @@ def clear_gmail_tokens() -> None:
     for key in ("gmail_client_id", "gmail_client_secret", "gmail_token"):
         cfg.pop(key, None)
     save_config(cfg)
+
+
+# ---------------------------------------------------------------------------
+# Google Calendar credential / token storage
+# ---------------------------------------------------------------------------
+
+def save_calendar_client(client_id: str, client_secret: str) -> None:
+    """Store the Google OAuth client ID (plaintext) and secret (encrypted)."""
+    cfg = load_config()
+    cfg["calendar_client_id"] = client_id
+    cfg["calendar_client_secret"] = _encrypt(client_secret)
+    save_config(cfg)
+
+
+def get_calendar_client() -> tuple[str, str] | None:
+    """Return (client_id, client_secret) or None if not configured."""
+    cfg = load_config()
+    client_id = cfg.get("calendar_client_id")
+    encrypted_secret = cfg.get("calendar_client_secret")
+    if not client_id or not encrypted_secret:
+        return None
+    return client_id, _decrypt(encrypted_secret)
+
+
+def save_calendar_tokens(token_dict: dict) -> None:
+    """Store Google Calendar OAuth tokens, encrypting the sensitive fields."""
+    cfg = load_config()
+    stored = token_dict.copy()
+    stored["token"] = _encrypt(token_dict["token"])
+    stored["refresh_token"] = _encrypt(token_dict["refresh_token"])
+    cfg["calendar_token"] = stored
+    save_config(cfg)
+
+
+def get_calendar_tokens() -> dict | None:
+    """Return decrypted Calendar token dict or None if not connected."""
+    cfg = load_config()
+    stored = cfg.get("calendar_token")
+    if not stored:
+        return None
+    decrypted = stored.copy()
+    decrypted["token"] = _decrypt(stored["token"])
+    decrypted["refresh_token"] = _decrypt(stored["refresh_token"])
+    return decrypted
+
+
+def clear_calendar_tokens() -> None:
+    """Remove all Calendar credentials and tokens from config."""
+    cfg = load_config()
+    for key in ("calendar_client_id", "calendar_client_secret", "calendar_token"):
+        cfg.pop(key, None)
+    save_config(cfg)

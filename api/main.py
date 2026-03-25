@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.auth import require_auth, router as auth_router
 from api.agents_api import router as agents_router
+from api.calendar_auth import router as calendar_router
 from api.gmail_auth import router as gmail_router
 from api.runs import _build_registry
 from api.runs import router as runs_router
@@ -22,6 +23,7 @@ app.add_middleware(
 app.include_router(auth_router, prefix="/api")
 app.include_router(agents_router, prefix="/api")
 app.include_router(gmail_router, prefix="/api")
+app.include_router(calendar_router, prefix="/api")
 app.include_router(runs_router, prefix="/api")
 
 
