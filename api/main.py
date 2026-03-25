@@ -33,10 +33,15 @@ def health():
 @app.get("/api/tools")
 def list_tools(user: str = Depends(require_auth)):
     registry = _build_registry()
-    return [
-        {
-            "name": s["function"]["name"],
+    result = []
+    for name, fn in registry._tools.items():
+        from agent99.registry import build_schema
+        s = build_schema(fn)
+        module_stem = (fn.__module__ or "").split(".")[-1]
+        category = module_stem.replace("_", " ").title() if module_stem else "General"
+        result.append({
+            "name": name,
             "description": s["function"].get("description", ""),
-        }
-        for s in registry.all_schemas()
-    ]
+            "category": category,
+        })
+    return result
