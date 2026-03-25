@@ -50,6 +50,27 @@ export const auth = {
 };
 
 // ---------------------------------------------------------------------------
+// Gmail
+// ---------------------------------------------------------------------------
+
+export const gmail = {
+  status: () =>
+    request<{ connected: boolean; email: string | null }>('/gmail/status'),
+
+  saveCredentials: (clientId: string, clientSecret: string) =>
+    request<{ ok: boolean }>('/gmail/credentials', {
+      method: 'POST',
+      body: JSON.stringify({ client_id: clientId, client_secret: clientSecret }),
+    }),
+
+  getAuthUrl: () =>
+    request<{ url: string }>('/gmail/auth-url'),
+
+  disconnect: () =>
+    request<{ ok: boolean }>('/gmail/disconnect', { method: 'DELETE' }),
+};
+
+// ---------------------------------------------------------------------------
 // Tools
 // ---------------------------------------------------------------------------
 
