@@ -12,6 +12,7 @@ dependencies = [
     "pyyaml",
     "litellm",
     "typer",
+    "requests",
 ]
 
 [project.optional-dependencies]
