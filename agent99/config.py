@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field, ValidationError, field_validator
 
 
 class MemoryConfig(BaseModel):
-    type: Literal["none", "sqlite", "chromadb"] = "none"
+    type: Literal["none", "sqlite", "chromadb", "markdown"] = "none"
     path: str | None = None
 
 

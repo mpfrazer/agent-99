@@ -12,7 +12,7 @@ export interface AgentConfig {
   model: string;
   system_prompt: string;
   tools: string[];
-  memory: { type: 'none' | 'sqlite' | 'chromadb'; path?: string };
+  memory: { type: 'none' | 'sqlite' | 'chromadb' | 'markdown'; path?: string };
   max_iterations: number;
   temperature: number;
   api_base: string | null;
