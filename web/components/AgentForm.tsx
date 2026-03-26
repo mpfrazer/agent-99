@@ -255,11 +255,12 @@ export default function AgentForm({ initial, mode }: Props) {
           <Field label="Memory Backend">
             <select
               value={form.memory.type}
-              onChange={(e) => set('memory', { type: e.target.value as 'none' | 'sqlite' | 'chromadb' })}
+              onChange={(e) => set('memory', { type: e.target.value as 'none' | 'sqlite' | 'chromadb' | 'markdown' })}
               className="input"
             >
               <option value="none">None (stateless)</option>
               <option value="sqlite">SQLite (persistent)</option>
+              <option value="markdown">Markdown file</option>
             </select>
           </Field>
           <Field label="Stream Output by Default">
