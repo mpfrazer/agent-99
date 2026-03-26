@@ -36,12 +36,15 @@ def search_google(query: str, num_results: int = 10) -> str:
     index = 1
     while len(items) < num_results:
         batch = min(_MAX_PER_REQUEST, num_results - len(items))
+        params: dict[str, str | int] = {
+            "key": api_key,
+            "cx": cse_id,
+            "q": query,
+            "num": batch,
+            "start": index,
+        }
         try:
-            resp = requests.get(
-                _API_URL,
-                params={"key": api_key, "cx": cse_id, "q": query, "num": batch, "start": index},
-                timeout=10,
-            )
+            resp = requests.get(_API_URL, params=params, timeout=10)
             resp.raise_for_status()
         except requests.RequestException as exc:
             return f"Search request failed: {exc}"
