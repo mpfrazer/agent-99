@@ -27,6 +27,35 @@ export interface RunSummary {
   completed_at: string | null;
   model: string;
   user_input: string;
+  trigger?: 'manual' | 'scheduled';
+}
+
+export type ScheduleMode = 'interval' | 'daily';
+export type IntervalUnit = 'minutes' | 'hours' | 'days';
+
+export interface Schedule {
+  id: string;
+  agent_name: string;
+  prompt: string;
+  mode: ScheduleMode;
+  interval_value: number | null;
+  interval_unit: IntervalUnit | null;
+  daily_time: string | null;
+  every_n_days: number | null;
+  active: number; // 1 = active, 0 = paused
+  created_at: string;
+  anchor: string;
+  next_run: string;
+}
+
+export interface SchedulePayload {
+  agent_name: string;
+  prompt: string;
+  mode: ScheduleMode;
+  interval_value?: number;
+  interval_unit?: IntervalUnit;
+  daily_time?: string;
+  every_n_days?: number;
 }
 
 export interface RunDetail extends RunSummary {

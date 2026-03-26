@@ -22,6 +22,10 @@ def runs_dir() -> Path:
     return _RUNS_DIR
 
 
+def schedules_db_path() -> Path:
+    return _CONFIG_DIR / "schedules.db"
+
+
 def _defaults(secret_key: str) -> dict:
     return {
         "password_hash": None,
