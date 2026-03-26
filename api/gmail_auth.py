@@ -1,11 +1,10 @@
 """Gmail OAuth 2.0 endpoints: connect, callback, status, disconnect."""
 
+import os
 import secrets
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
 from pydantic import BaseModel
 
 from api.auth import require_auth
@@ -27,7 +26,9 @@ _SCOPES = [
     "https://www.googleapis.com/auth/userinfo.email",
 ]
 
-_REDIRECT_URI = "http://localhost:8000/api/gmail/callback"
+_API_BASE = os.environ.get("API_BASE_URL", "http://localhost:8000")
+_WEB_BASE = os.environ.get("WEB_BASE_URL", "http://localhost:3000")
+_REDIRECT_URI = f"{_API_BASE}/api/gmail/callback"
 
 # In-memory CSRF state store  {state: True}
 _pending_states: dict[str, bool] = {}
@@ -37,7 +38,9 @@ _pending_states: dict[str, bool] = {}
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _build_flow() -> Flow:
+def _build_flow():
+    from google_auth_oauthlib.flow import Flow
+
     creds = get_gmail_client()
     if not creds:
         raise HTTPException(status_code=400, detail="Gmail client credentials not configured. Save them in Settings first.")
@@ -57,7 +60,7 @@ def _build_flow() -> Flow:
     )
 
 
-def _credentials_to_dict(creds: Credentials) -> dict:
+def _credentials_to_dict(creds) -> dict:
     return {
         "token": creds.token,
         "refresh_token": creds.refresh_token,
@@ -115,7 +118,7 @@ def oauth_callback(code: str, state: str, request: Request):
     flow.fetch_token(code=code)
     creds = flow.credentials
     save_gmail_tokens(_credentials_to_dict(creds))
-    return RedirectResponse(url="http://localhost:3000/settings?gmail=connected")
+    return RedirectResponse(url=f"{_WEB_BASE}/settings?gmail=connected")
 
 
 @router.get("/status")

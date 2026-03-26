@@ -1,5 +1,7 @@
 """FastAPI application entry point."""
 
+import os
+
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -12,9 +14,11 @@ from api.runs import router as runs_router
 
 app = FastAPI(title="agent-99 API", version="0.1.0")
 
+_WEB_BASE = os.environ.get("WEB_BASE_URL", "http://localhost:3000")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[_WEB_BASE],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
