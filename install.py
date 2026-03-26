@@ -7,7 +7,6 @@ Run with: python install.py
 """
 
 import getpass
-import os
 import platform
 import shutil
 import subprocess
@@ -98,6 +97,7 @@ def setup_config() -> None:
         return
 
     import secrets
+
     import yaml
 
     # Bootstrap config without password

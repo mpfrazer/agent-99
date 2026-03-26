@@ -109,7 +109,7 @@ function GoogleServiceCard({
             </span>
             . Register{' '}
             <span className="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">
-              {`http://localhost:8000${redirectUriPath}`}
+              {`${process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000'}${redirectUriPath}`}
             </span>{' '}
             as an authorised redirect URI.
           </p>

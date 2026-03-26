@@ -2,12 +2,11 @@
 
 import json
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
 from agent99.providers import LLMResponse, Provider, ToolCall
-
 
 # ---------------------------------------------------------------------------
 # Helpers — build fake litellm response objects
@@ -54,7 +53,7 @@ def test_llm_response_defaults():
 
 def test_plain_text_response():
     fake = make_response(content="Hello, world!")
-    with patch("agent99.providers.litellm.completion", return_value=fake) as mock:
+    with patch("agent99.providers.litellm.completion", return_value=fake):
         provider = Provider(model="ollama/mistral")
         result = provider.complete([{"role": "user", "content": "hi"}])
 

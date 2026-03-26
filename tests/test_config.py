@@ -7,7 +7,6 @@ from pydantic import ValidationError
 
 from agent99.config import AgentConfig, MemoryConfig
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

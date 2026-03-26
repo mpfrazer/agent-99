@@ -1,10 +1,13 @@
 """FastAPI application entry point."""
 
-from fastapi import FastAPI, Depends
+import os
+
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.auth import require_auth, router as auth_router
 from api.agents_api import router as agents_router
+from api.auth import require_auth
+from api.auth import router as auth_router
 from api.calendar_auth import router as calendar_router
 from api.gmail_auth import router as gmail_router
 from api.runs import _build_registry
@@ -12,9 +15,11 @@ from api.runs import router as runs_router
 
 app = FastAPI(title="agent-99 API", version="0.1.0")
 
+_WEB_BASE = os.environ.get("WEB_BASE_URL", "http://localhost:3000")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[_WEB_BASE],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

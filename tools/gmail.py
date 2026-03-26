@@ -1,18 +1,16 @@
 """Gmail tools: read, send, label, and manage email via the Gmail API."""
 
 import base64
-import email as _email_lib
 from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 
 def _get_service():
     """Build an authenticated Gmail API service, refreshing tokens if needed."""
-    from googleapiclient.discovery import build
     from google.oauth2.credentials import Credentials
+    from googleapiclient.discovery import build
 
     # Import here to avoid circular dependency at module load time
-    from api.app_config import get_gmail_tokens, get_gmail_client, save_gmail_tokens
+    from api.app_config import get_gmail_client, get_gmail_tokens, save_gmail_tokens
 
     tokens = get_gmail_tokens()
     if not tokens:
@@ -36,7 +34,6 @@ def _get_service():
 
     # Persist refreshed token if it changed
     if creds.token != tokens["token"]:
-        from api.app_config import _credentials_to_dict  # noqa: PLC0415
         save_gmail_tokens({
             "token": creds.token,
             "refresh_token": creds.refresh_token,
@@ -230,7 +227,10 @@ def list_labels() -> str:
     labels = result.get("labels", [])
     if not labels:
         return "No labels found."
-    return "\n".join(f"id={l['id']}  name={l['name']!r}" for l in sorted(labels, key=lambda l: l["name"]))
+    return "\n".join(
+        f"id={lb['id']}  name={lb['name']!r}"
+        for lb in sorted(labels, key=lambda lb: lb["name"])
+    )
 
 
 def move_email(message_id: str, add_label: str, remove_label: str = "") -> str:
@@ -245,7 +245,7 @@ def move_email(message_id: str, add_label: str, remove_label: str = "") -> str:
 
     # Resolve label names to IDs
     all_labels = service.users().labels().list(userId="me").execute().get("labels", [])
-    name_to_id = {l["name"].lower(): l["id"] for l in all_labels}
+    name_to_id = {lb["name"].lower(): lb["id"] for lb in all_labels}
 
     add_ids = []
     if add_label:

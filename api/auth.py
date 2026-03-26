@@ -1,6 +1,6 @@
 """JWT authentication: endpoints and FastAPI dependency."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from jose import JWTError, jwt
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 # ---------------------------------------------------------------------------
 
 def _create_token(secret: str) -> str:
-    exp = datetime.now(timezone.utc) + timedelta(days=EXPIRE_DAYS)
+    exp = datetime.now(UTC) + timedelta(days=EXPIRE_DAYS)
     return jwt.encode({"sub": "user", "exp": exp}, secret, algorithm=ALGORITHM)
 
 

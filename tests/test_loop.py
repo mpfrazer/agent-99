@@ -1,6 +1,5 @@
 """Tests for agent99.loop."""
 
-import json
 from unittest.mock import MagicMock
 
 import pytest
@@ -10,7 +9,6 @@ from agent99.loop import AgentLoop
 from agent99.memory import NoneMemory, SqliteMemory
 from agent99.providers import LLMResponse, ToolCall
 from agent99.registry import ToolRegistry
-
 
 # ---------------------------------------------------------------------------
 # Helpers

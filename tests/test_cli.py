@@ -1,10 +1,8 @@
 """Tests for agent99.cli."""
 
-import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import pytest
 from typer.testing import CliRunner
 
 from agent99.cli import app
