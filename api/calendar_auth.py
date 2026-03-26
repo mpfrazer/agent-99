@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
-from api.auth import require_auth
 from api.app_config import (
     clear_calendar_tokens,
     get_calendar_client,
@@ -15,6 +14,7 @@ from api.app_config import (
     save_calendar_client,
     save_calendar_tokens,
 )
+from api.auth import require_auth
 
 router = APIRouter(prefix="/calendar", tags=["calendar"])
 
@@ -130,8 +130,8 @@ def calendar_status(user: str = Depends(require_auth)):
         return {"connected": False, "email": None}
 
     try:
-        from googleapiclient.discovery import build
         from google.oauth2.credentials import Credentials as GCreds
+        from googleapiclient.discovery import build
 
         client = get_calendar_client() or ("", "")
         creds = GCreds(

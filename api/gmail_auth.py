@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
 
-from api.auth import require_auth
 from api.app_config import (
     clear_gmail_tokens,
     get_gmail_client,
@@ -15,6 +14,7 @@ from api.app_config import (
     save_gmail_client,
     save_gmail_tokens,
 )
+from api.auth import require_auth
 
 router = APIRouter(prefix="/gmail", tags=["gmail"])
 
@@ -130,9 +130,9 @@ def gmail_status(user: str = Depends(require_auth)):
 
     # Try to retrieve the connected email address
     try:
-        from googleapiclient.discovery import build
+
         from google.oauth2.credentials import Credentials as GCreds
-        import datetime
+        from googleapiclient.discovery import build
 
         creds = GCreds(
             token=tokens["token"],

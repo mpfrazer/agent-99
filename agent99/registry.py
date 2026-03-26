@@ -2,8 +2,9 @@
 
 import inspect
 import re
+from collections.abc import Callable
 from types import ModuleType
-from typing import Callable, get_type_hints
+from typing import get_type_hints
 
 # Mapping from Python types to JSON Schema types
 _TYPE_MAP: dict[type, str] = {

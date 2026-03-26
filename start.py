@@ -6,9 +6,7 @@ Starts FastAPI on :8000 and Next.js on :3000, then opens the browser.
 Press Ctrl+C to shut both down.
 """
 
-import os
 import platform
-import signal
 import subprocess
 import sys
 import time

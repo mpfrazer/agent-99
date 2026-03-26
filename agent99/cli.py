@@ -2,7 +2,7 @@
 
 import sys
 from pathlib import Path
-from typing import Annotated, Optional
+from typing import Annotated
 
 import typer
 
@@ -10,7 +10,7 @@ from agent99.config import AgentConfig
 from agent99.loop import AgentLoop
 from agent99.memory import create_memory
 from agent99.providers import Provider
-from agent99.registry import ToolRegistry, build_schema
+from agent99.registry import ToolRegistry
 
 app = typer.Typer(help="agent-99: a lightweight local AI agent runner.")
 
@@ -46,7 +46,7 @@ def _build_registry() -> ToolRegistry:
 @app.command()
 def run(
     agent_file: Annotated[Path, typer.Argument(help="Path to the agent YAML file.")],
-    input: Annotated[Optional[str], typer.Option("--input", "-i", help="User input. Reads stdin if omitted.")] = None,
+    input: Annotated[str | None, typer.Option("--input", "-i", help="User input. Reads stdin if omitted.")] = None,
 ) -> None:
     """Run an agent defined in a YAML file."""
     try:

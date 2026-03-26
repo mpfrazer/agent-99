@@ -1,14 +1,14 @@
 """Google Calendar tools: list, create, edit, delete, and respond to events."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 
 def _get_service():
     """Build an authenticated Google Calendar API service, refreshing tokens if needed."""
-    from googleapiclient.discovery import build
     from google.oauth2.credentials import Credentials
+    from googleapiclient.discovery import build
 
-    from api.app_config import get_calendar_tokens, get_calendar_client, save_calendar_tokens
+    from api.app_config import get_calendar_client, get_calendar_tokens, save_calendar_tokens
 
     tokens = get_calendar_tokens()
     if not tokens:
@@ -122,7 +122,7 @@ def list_events(
         query: Free-text search query to filter events by title/description.
     """
     service = _get_service()
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
 
     params: dict = {
         "calendarId": calendar_id,
@@ -325,8 +325,8 @@ def find_free_slots(
     """
     service = _get_service()
 
-    day_start = datetime.fromisoformat(f"{date}T{start_hour:02d}:00:00").replace(tzinfo=timezone.utc)
-    day_end = datetime.fromisoformat(f"{date}T{end_hour:02d}:00:00").replace(tzinfo=timezone.utc)
+    day_start = datetime.fromisoformat(f"{date}T{start_hour:02d}:00:00").replace(tzinfo=UTC)
+    day_end = datetime.fromisoformat(f"{date}T{end_hour:02d}:00:00").replace(tzinfo=UTC)
 
     result = service.events().list(
         calendarId=calendar_id,
@@ -420,7 +420,7 @@ def get_upcoming_events(
         days_ahead: Number of days to look ahead (default 7).
         max_results: Maximum number of events to return (default 10).
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     until = now + timedelta(days=days_ahead)
 
     service = _get_service()

@@ -2,11 +2,12 @@
 
 import os
 
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.auth import require_auth, router as auth_router
 from api.agents_api import router as agents_router
+from api.auth import require_auth
+from api.auth import router as auth_router
 from api.calendar_auth import router as calendar_router
 from api.gmail_auth import router as gmail_router
 from api.runs import _build_registry

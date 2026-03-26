@@ -1,8 +1,6 @@
 """Tests for /api/agents/* CRUD endpoints."""
 
-import pytest
 from fastapi.testclient import TestClient
-
 
 AGENT_PAYLOAD = {
     "name": "test-agent",

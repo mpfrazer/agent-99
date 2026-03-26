@@ -8,9 +8,8 @@ import pytest
 # Make the tools/ package importable from the repo root
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from agent99.registry import ToolRegistry, build_schema
 import tools.filesystem as filesystem_module
-
+from agent99.registry import ToolRegistry, build_schema
 
 # ---------------------------------------------------------------------------
 # Fixture functions used as test subjects

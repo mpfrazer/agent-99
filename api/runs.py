@@ -1,11 +1,12 @@
 """Run lifecycle management: start, stream (SSE), cancel, list, persist."""
 
 import asyncio
+import importlib
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from pathlib import Path as _Path
 
 import yaml
 from fastapi import APIRouter, Depends, HTTPException
@@ -16,12 +17,9 @@ from agent99.config import AgentConfig
 from agent99.memory import create_memory
 from agent99.registry import ToolRegistry
 from api.agents_api import _load_agent
+from api.app_config import runs_dir
 from api.async_loop import LoopEvent, run_agent_async
 from api.auth import require_auth
-from api.app_config import runs_dir
-
-import importlib
-from pathlib import Path as _Path
 
 router = APIRouter(prefix="/runs", tags=["runs"])
 
@@ -54,7 +52,7 @@ class RunState:
     events: list[dict] = field(default_factory=list)  # accumulated for late-joiners
     final_output: str = ""
     error: str | None = None
-    started_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    started_at: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
     completed_at: str | None = None
     queue: asyncio.Queue = field(default_factory=asyncio.Queue)
     task: asyncio.Task | None = None
@@ -161,7 +159,7 @@ async def _run_task(run: RunState, config: AgentConfig, agent_raw: dict) -> None
         run.error = str(e)
         await run.queue.put(LoopEvent("error", {"message": str(e)}))
     finally:
-        run.completed_at = datetime.now(timezone.utc).isoformat()
+        run.completed_at = datetime.now(UTC).isoformat()
         _save_run(run, agent_raw)
         # Sentinel closes any connected SSE stream
         await run.queue.put(None)

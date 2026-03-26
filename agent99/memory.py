@@ -1,7 +1,7 @@
 """Agent memory backends: none, sqlite, chromadb."""
 
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from agent99.config import MemoryConfig
 
@@ -44,7 +44,7 @@ class SqliteMemory(BaseMemory):
         self._conn.commit()
 
     def add(self, role: str, content: str) -> None:
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
         self._conn.execute(
             "INSERT INTO messages (role, content, created_at) VALUES (?, ?, ?)",
             (role, content, now),

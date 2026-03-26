@@ -1,10 +1,6 @@
 """Tests for api/app_config.py — config I/O and encryption."""
 
-import secrets
 from pathlib import Path
-
-import pytest
-import yaml
 
 
 def test_load_config_creates_defaults(config_dir: Path):
