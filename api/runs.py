@@ -301,7 +301,7 @@ def list_runs(
                         "user_input": parsed.get("user_input", "")[:100],
                     })
 
-    results.sort(key=lambda r: r.get("started_at", ""), reverse=True)
+    results.sort(key=lambda r: r.get("started_at") or "", reverse=True)
     return results[:limit]
 
 
