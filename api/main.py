@@ -14,9 +14,9 @@ from api.calendar_auth import router as calendar_router
 from api.gmail_auth import router as gmail_router
 from api.runs import _build_registry
 from api.runs import router as runs_router
+from api.scheduler import scheduler_loop
 from api.schedules import router as schedules_router
 from api.schedules_db import init_db
-from api.scheduler import scheduler_loop
 
 
 @asynccontextmanager

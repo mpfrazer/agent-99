@@ -24,7 +24,6 @@ DAILY_PAYLOAD = {
 def isolate_db(config_dir, monkeypatch):
     """Ensure each test uses a fresh in-memory-like DB via isolated config dir."""
     import api.schedules_db as sdb
-    import api.app_config as ac
 
     # config_dir fixture already patches _CONFIG_DIR; just init the DB
     sdb.init_db()

@@ -8,20 +8,19 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, field_validator, model_validator
 
 from api.auth import require_auth
+from api.scheduler_logic import (
+    compute_anchor_daily,
+    compute_anchor_interval,
+    compute_next_run,
+    interval_to_timedelta,
+)
 from api.schedules_db import (
     create_schedule,
     delete_schedule,
     get_schedule,
     list_schedules,
     toggle_schedule,
-    update_next_run,
     update_schedule,
-)
-from api.scheduler_logic import (
-    compute_anchor_daily,
-    compute_anchor_interval,
-    compute_next_run,
-    interval_to_timedelta,
 )
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])

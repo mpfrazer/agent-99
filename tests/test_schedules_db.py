@@ -1,8 +1,9 @@
 """Tests for api/schedules_db.py — SQLite CRUD layer."""
 
-import pytest
 from datetime import datetime
 from pathlib import Path
+
+import pytest
 
 from api.schedules_db import (
     create_schedule,

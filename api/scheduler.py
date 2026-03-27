@@ -4,11 +4,11 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 
-from api.schedules_db import get_due_schedules, update_next_run
 from api.scheduler_logic import (
     compute_next_run,
     interval_to_timedelta,
 )
+from api.schedules_db import get_due_schedules, update_next_run
 
 logger = logging.getLogger(__name__)
 

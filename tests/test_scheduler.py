@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from api.scheduler import _fire_schedule, _schedule_interval, check_and_fire
 
-
 # ---------------------------------------------------------------------------
 # _schedule_interval
 # ---------------------------------------------------------------------------
