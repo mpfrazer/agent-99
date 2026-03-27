@@ -3,6 +3,8 @@ import type {
   AgentSummary,
   RunDetail,
   RunSummary,
+  Schedule,
+  SchedulePayload,
   StartRunRequest,
   StartRunResponse,
 } from './types';
@@ -142,4 +144,32 @@ export const runs = {
 
   cancel: (id: string) =>
     request<{ cancelled: string }>(`/runs/${id}`, { method: 'DELETE' }),
+};
+
+// ---------------------------------------------------------------------------
+// Schedules
+// ---------------------------------------------------------------------------
+
+export const schedules = {
+  list: () => request<Schedule[]>('/schedules'),
+
+  get: (id: string) => request<Schedule>(`/schedules/${id}`),
+
+  create: (payload: SchedulePayload) =>
+    request<Schedule>('/schedules', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+
+  update: (id: string, payload: SchedulePayload) =>
+    request<Schedule>(`/schedules/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }),
+
+  toggle: (id: string) =>
+    request<Schedule>(`/schedules/${id}/toggle`, { method: 'PATCH' }),
+
+  delete: (id: string) =>
+    request<{ deleted: string }>(`/schedules/${id}`, { method: 'DELETE' }),
 };
