@@ -55,8 +55,14 @@ async def run_agent_async(
     messages.extend(memory.history())
     messages.append({"role": "user", "content": user_input})
 
+    # litellm's `ollama/` prefix uses the completion API which silently drops tool
+    # calls. `ollama_chat/` uses the chat API and correctly surfaces them.
+    effective_model = config.model
+    if tool_schemas and effective_model.startswith("ollama/"):
+        effective_model = "ollama_chat/" + effective_model[len("ollama/"):]
+
     base_kwargs: dict[str, Any] = {
-        "model": config.model,
+        "model": effective_model,
         "temperature": config.temperature,
     }
     if config.api_base:
@@ -66,9 +72,10 @@ async def run_agent_async(
 
     if debug:
         tool_names = config.tools or []
+        model_note = " (rewritten from ollama/ to ollama_chat/ for tool support)" if effective_model != config.model else ""
         await _dbg(queue, (
             f"Agent run starting\n"
-            f"  model:          {config.model}\n"
+            f"  model:          {effective_model}{model_note}\n"
             f"  api_base:       {config.api_base or '(default)'}\n"
             f"  tools:          {len(tool_schemas)} registered ({', '.join(tool_names) or 'none'})\n"
             f"  max_iterations: {config.max_iterations}\n"
@@ -76,6 +83,12 @@ async def run_agent_async(
             f"  system_prompt:  {'yes' if config.system_prompt else 'no'}\n"
             f"  stream:         {stream}"
         ))
+        if effective_model != config.model:
+            await _dbg(queue, (
+                f"NOTE: Model was automatically rewritten from '{config.model}' to '{effective_model}'. "
+                f"The 'ollama/' prefix in litellm uses the completion API which does not surface tool calls. "
+                f"Update your agent config to use 'ollama_chat/' to suppress this message."
+            ), level="warning")
 
     for i in range(config.max_iterations):
         # Check for cancellation before each LLM call
