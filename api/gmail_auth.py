@@ -114,10 +114,14 @@ def oauth_callback(code: str, state: str, request: Request):
         raise HTTPException(status_code=400, detail="Invalid or expired OAuth state")
     _pending_states.pop(state)
 
-    flow = _build_flow()
-    flow.fetch_token(code=code)
-    creds = flow.credentials
-    save_gmail_tokens(_credentials_to_dict(creds))
+    try:
+        flow = _build_flow()
+        flow.fetch_token(code=code)
+        creds = flow.credentials
+        save_gmail_tokens(_credentials_to_dict(creds))
+    except Exception as exc:
+        return RedirectResponse(url=f"{_WEB_BASE}/settings?gmail=error&detail={exc!s}"[:200])
+
     return RedirectResponse(url=f"{_WEB_BASE}/settings?gmail=connected")
 
 
