@@ -13,6 +13,7 @@ export default function NavBar() {
   const links = [
     { href: '/', label: 'Dashboard' },
     { href: '/agents', label: 'Agents' },
+    { href: '/schedules', label: 'Schedules' },
     { href: '/runs', label: 'Run History' },
   ];
 

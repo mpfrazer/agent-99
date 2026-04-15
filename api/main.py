@@ -1,6 +1,8 @@
 """FastAPI application entry point."""
 
+import asyncio
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,8 +14,20 @@ from api.calendar_auth import router as calendar_router
 from api.gmail_auth import router as gmail_router
 from api.runs import _build_registry
 from api.runs import router as runs_router
+from api.scheduler import scheduler_loop
+from api.schedules import router as schedules_router
+from api.schedules_db import init_db
 
-app = FastAPI(title="agent-99 API", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    task = asyncio.create_task(scheduler_loop())
+    yield
+    task.cancel()
+
+
+app = FastAPI(title="agent-99 API", version="0.1.0", lifespan=lifespan)
 
 _WEB_BASE = os.environ.get("WEB_BASE_URL", "http://localhost:3000")
 
@@ -30,6 +44,7 @@ app.include_router(agents_router, prefix="/api")
 app.include_router(gmail_router, prefix="/api")
 app.include_router(calendar_router, prefix="/api")
 app.include_router(runs_router, prefix="/api")
+app.include_router(schedules_router, prefix="/api")
 
 
 @app.get("/api/health")

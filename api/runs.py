@@ -58,6 +58,8 @@ class RunState:
     task: asyncio.Task | None = None
     model: str = ""
     tool_calls: list[dict] = field(default_factory=list)
+    trigger: str = "manual"          # 'manual' | 'scheduled'
+    schedule_id: str | None = None   # set when trigger == 'scheduled'
 
 
 # ---------------------------------------------------------------------------
@@ -103,7 +105,10 @@ def _save_run(run: RunState, agent_raw: dict) -> None:
         "completed_at": run.completed_at,
         "status": run.status,
         "tool_calls": run.tool_calls,
+        "trigger": run.trigger,
     }
+    if run.schedule_id:
+        frontmatter["schedule_id"] = run.schedule_id
     if agent_raw.get("api_base"):
         frontmatter["api_base"] = agent_raw["api_base"]
 
@@ -166,6 +171,36 @@ async def _run_task(run: RunState, config: AgentConfig, agent_raw: dict) -> None
         # Delay removal so late-joining SSE clients can still connect and
         # replay accumulated events (handles fast-failing agents)
         asyncio.get_event_loop().call_later(120, _active.pop, run.id, None)
+
+
+# ---------------------------------------------------------------------------
+# Internal run starter (used by scheduler — no auth required)
+# ---------------------------------------------------------------------------
+
+async def start_run_internal(
+    agent_name: str,
+    user_input: str,
+    trigger: str = "manual",
+    schedule_id: str | None = None,
+) -> RunState:
+    """Start a run without HTTP authentication.  Used by the background scheduler."""
+    agent_raw = _load_agent(agent_name)
+    config = AgentConfig.model_validate(agent_raw)
+    stream = config.stream_output
+
+    run = RunState(
+        id=str(uuid.uuid4()),
+        agent_name=agent_name,
+        user_input=user_input,
+        stream=stream,
+        status="running",
+        model=config.model,
+        trigger=trigger,
+        schedule_id=schedule_id,
+    )
+    _active[run.id] = run
+    run.task = asyncio.create_task(_run_task(run, config, agent_raw))
+    return run
 
 
 # ---------------------------------------------------------------------------
@@ -279,6 +314,7 @@ def list_runs(
             "completed_at": run.completed_at,
             "model": run.model,
             "user_input": run.user_input[:100],
+            "trigger": run.trigger,
         })
 
     # Persisted runs (files)
@@ -299,6 +335,7 @@ def list_runs(
                         "completed_at": str(parsed.get("completed_at", "")),
                         "model": parsed.get("model", ""),
                         "user_input": parsed.get("user_input", "")[:100],
+                        "trigger": parsed.get("trigger", "manual"),
                     })
 
     results.sort(key=lambda r: r.get("started_at") or "", reverse=True)
