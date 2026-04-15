@@ -123,7 +123,7 @@ def save_gmail_tokens(token_dict: dict) -> None:
     cfg = load_config()
     stored = token_dict.copy()
     stored["token"] = _encrypt(token_dict["token"])
-    stored["refresh_token"] = _encrypt(token_dict["refresh_token"])
+    stored["refresh_token"] = _encrypt(token_dict["refresh_token"]) if token_dict.get("refresh_token") else None
     cfg["gmail_token"] = stored
     save_config(cfg)
 
@@ -136,7 +136,7 @@ def get_gmail_tokens() -> dict | None:
         return None
     decrypted = stored.copy()
     decrypted["token"] = _decrypt(stored["token"])
-    decrypted["refresh_token"] = _decrypt(stored["refresh_token"])
+    decrypted["refresh_token"] = _decrypt(stored["refresh_token"]) if stored.get("refresh_token") else None
     return decrypted
 
 
@@ -175,7 +175,7 @@ def save_calendar_tokens(token_dict: dict) -> None:
     cfg = load_config()
     stored = token_dict.copy()
     stored["token"] = _encrypt(token_dict["token"])
-    stored["refresh_token"] = _encrypt(token_dict["refresh_token"])
+    stored["refresh_token"] = _encrypt(token_dict["refresh_token"]) if token_dict.get("refresh_token") else None
     cfg["calendar_token"] = stored
     save_config(cfg)
 
@@ -188,7 +188,7 @@ def get_calendar_tokens() -> dict | None:
         return None
     decrypted = stored.copy()
     decrypted["token"] = _decrypt(stored["token"])
-    decrypted["refresh_token"] = _decrypt(stored["refresh_token"])
+    decrypted["refresh_token"] = _decrypt(stored["refresh_token"]) if stored.get("refresh_token") else None
     return decrypted
 
 
