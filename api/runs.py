@@ -60,6 +60,7 @@ class RunState:
     tool_calls: list[dict] = field(default_factory=list)
     trigger: str = "manual"          # 'manual' | 'scheduled'
     schedule_id: str | None = None   # set when trigger == 'scheduled'
+    debug: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -73,6 +74,7 @@ class StartRunRequest(BaseModel):
     model: str | None = None            # override
     temperature: float | None = None    # override
     max_iterations: int | None = None   # override
+    debug: bool = False                 # emit diagnostic events into the stream
 
 
 # ---------------------------------------------------------------------------
@@ -153,6 +155,7 @@ async def _run_task(run: RunState, config: AgentConfig, agent_raw: dict) -> None
             queue=run.queue,
             memory=memory,
             stream=run.stream,
+            debug=run.debug,
         )
         run.final_output = result
         run.status = "completed"
@@ -229,6 +232,7 @@ async def start_run(body: StartRunRequest, user: str = Depends(require_auth)):
         stream=stream,
         status="running",
         model=config.model,
+        debug=body.debug,
     )
     _active[run.id] = run
     run.task = asyncio.create_task(_run_task(run, config, agent_raw))

@@ -42,6 +42,40 @@ function ToolCallBlock({ event, result }: { event: SSEEvent; result?: SSEEvent }
   );
 }
 
+function DebugPanel({ events }: { events: SSEEvent[] }) {
+  const [open, setOpen] = useState(true);
+  if (events.length === 0) return null;
+
+  return (
+    <div className="mt-3 border border-slate-200 rounded-lg overflow-hidden text-xs">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center gap-2 px-3 py-2 bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+      >
+        <span className="font-medium text-slate-500">Debug</span>
+        <span className="ml-1 text-slate-400 tabular-nums">{events.length} event{events.length !== 1 ? 's' : ''}</span>
+        <span className="ml-auto text-slate-400">{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div className="divide-y divide-slate-100 max-h-64 overflow-y-auto">
+          {events.map((evt, i) => {
+            const level = evt.level ?? 'info';
+            const lineColor =
+              level === 'error' ? 'text-red-700 bg-red-50' :
+              level === 'warning' ? 'text-amber-700 bg-amber-50' :
+              'text-slate-600 bg-white';
+            return (
+              <div key={i} className={`px-3 py-2 ${lineColor}`}>
+                <pre className="font-mono whitespace-pre-wrap leading-relaxed">{evt.message}</pre>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function StreamingOutput({ runId, initialEvents = [], onComplete }: Props) {
   const [events, setEvents] = useState<SSEEvent[]>(initialEvents);
   const [done, setDone] = useState(false);
@@ -88,20 +122,24 @@ export default function StreamingOutput({ runId, initialEvents = [], onComplete 
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [events]);
 
+  // Separate debug events from display events
+  const debugEvents = events.filter((e) => e.type === 'debug');
+  const displayEvents = events.filter((e) => e.type !== 'debug');
+
   // Build display: interleave text chunks with tool call blocks
   const rendered: React.ReactNode[] = [];
   let textBuffer = '';
   const toolResults = new Map<string, SSEEvent>(); // id → result event
 
   // Pre-pass: collect tool results
-  for (const evt of events) {
+  for (const evt of displayEvents) {
     if (evt.type === 'tool_result' && evt.id) {
       toolResults.set(evt.id, evt);
     }
   }
 
-  for (let i = 0; i < events.length; i++) {
-    const evt = events[i];
+  for (let i = 0; i < displayEvents.length; i++) {
+    const evt = displayEvents[i];
     if (evt.type === 'chunk' && evt.content) {
       textBuffer += evt.content;
     } else if (evt.type === 'tool_call') {
@@ -154,6 +192,12 @@ export default function StreamingOutput({ runId, initialEvents = [], onComplete 
         {rendered.length === 0 && !done && (
           <p className="text-sm text-slate-400 italic">Waiting for response…</p>
         )}
+        {rendered.length === 0 && done && !hasError && !isCancelled && (
+          <p className="text-sm text-slate-400 italic">
+            No output — the model returned an empty response.
+            {debugEvents.length > 0 ? ' See Debug panel below for details.' : ' Enable Debug output on the next run for diagnostics.'}
+          </p>
+        )}
         {rendered}
         {hasError && (
           <p className="text-sm text-red-500 mt-2">
@@ -162,6 +206,7 @@ export default function StreamingOutput({ runId, initialEvents = [], onComplete 
         )}
         <div ref={bottomRef} />
       </div>
+      <DebugPanel events={debugEvents} />
     </div>
   );
 }

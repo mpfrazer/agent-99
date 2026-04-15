@@ -74,13 +74,14 @@ export interface ToolCallRecord {
 }
 
 export interface SSEEvent {
-  type: 'chunk' | 'tool_call' | 'tool_result' | 'done' | 'error' | 'cancelled';
+  type: 'chunk' | 'tool_call' | 'tool_result' | 'done' | 'error' | 'cancelled' | 'debug';
   content?: string;
   id?: string;
   name?: string;
   arguments?: Record<string, unknown>;
   result?: string;
   message?: string;
+  level?: 'info' | 'warning' | 'error';
 }
 
 export interface StartRunRequest {
@@ -90,6 +91,7 @@ export interface StartRunRequest {
   model?: string;
   temperature?: number;
   max_iterations?: number;
+  debug?: boolean;
 }
 
 export interface StartRunResponse {

@@ -31,6 +31,7 @@ export default function AgentDetailPage({ params }: Props) {
   // Run form state
   const [input, setInput] = useState('');
   const [streamOverride, setStreamOverride] = useState<boolean | null>(null);
+  const [debugEnabled, setDebugEnabled] = useState(false);
   const [modelOverride, setModelOverride] = useState('');
   const [temperatureOverride, setTemperatureOverride] = useState('');
   const [maxIterOverride, setMaxIterOverride] = useState('');
@@ -54,6 +55,7 @@ export default function AgentDetailPage({ params }: Props) {
         model: modelOverride || undefined,
         temperature: temperatureOverride ? parseFloat(temperatureOverride) : undefined,
         max_iterations: maxIterOverride ? parseInt(maxIterOverride) : undefined,
+        debug: debugEnabled || undefined,
       });
       setActiveRun(res);
       addRun({
@@ -124,7 +126,7 @@ export default function AgentDetailPage({ params }: Props) {
 
           {/* Override toggles */}
           <div className="space-y-3">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
               {/* Stream toggle */}
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -135,6 +137,17 @@ export default function AgentDetailPage({ params }: Props) {
                   disabled={!!activeRun}
                 />
                 <span className="text-sm text-slate-600">Stream output live</span>
+              </label>
+              {/* Debug toggle */}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={debugEnabled}
+                  onChange={(e) => setDebugEnabled(e.target.checked)}
+                  className="w-4 h-4 rounded text-indigo-600"
+                  disabled={!!activeRun}
+                />
+                <span className="text-sm text-slate-600">Debug output</span>
               </label>
               <button
                 type="button"
