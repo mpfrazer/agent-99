@@ -2,6 +2,7 @@
 
 import os
 import secrets
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
@@ -28,8 +29,8 @@ _API_BASE = os.environ.get("API_BASE_URL", "http://localhost:8000")
 _WEB_BASE = os.environ.get("WEB_BASE_URL", "http://localhost:3000")
 _REDIRECT_URI = f"{_API_BASE}/api/calendar/callback"
 
-# In-memory CSRF state store  {state: True}
-_pending_states: dict[str, bool] = {}
+# In-memory CSRF state store  {state: Flow}
+_pending_states: dict[str, Any] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -98,13 +99,15 @@ def get_auth_url(user: str = Depends(require_auth)):
     """Generate and return the Google OAuth consent URL for Calendar."""
     flow = _build_flow()
     state = secrets.token_urlsafe(32)
-    _pending_states[state] = True
     auth_url, _ = flow.authorization_url(
         access_type="offline",
         include_granted_scopes="true",
         prompt="consent",
         state=state,
     )
+    # Store the flow object so the callback can reuse it — the flow holds the
+    # PKCE code_verifier that must be sent with the token exchange request.
+    _pending_states[state] = flow
     return {"url": auth_url}
 
 
@@ -113,12 +116,15 @@ def oauth_callback(code: str, state: str, request: Request):
     """Handle Google OAuth redirect for Calendar. Exchanges code for tokens."""
     if state not in _pending_states:
         raise HTTPException(status_code=400, detail="Invalid or expired OAuth state")
-    _pending_states.pop(state)
+    flow = _pending_states.pop(state)
 
-    flow = _build_flow()
-    flow.fetch_token(code=code)
-    creds = flow.credentials
-    save_calendar_tokens(_credentials_to_dict(creds))
+    try:
+        flow.fetch_token(code=code)
+        creds = flow.credentials
+        save_calendar_tokens(_credentials_to_dict(creds))
+    except Exception as exc:
+        return RedirectResponse(url=f"{_WEB_BASE}/settings?calendar=error&detail={exc!s}"[:200])
+
     return RedirectResponse(url=f"{_WEB_BASE}/settings?calendar=connected")
 
 
