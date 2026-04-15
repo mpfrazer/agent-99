@@ -81,6 +81,7 @@ const DEFAULTS: AgentConfig = {
   temperature: 0.7,
   api_base: null,
   stream_output: true,
+  allow_subagents: false,
 };
 
 interface Props {
@@ -272,6 +273,23 @@ export default function AgentForm({ initial, mode }: Props) {
                 className="w-4 h-4 rounded text-indigo-600"
               />
               <span className="text-sm text-slate-600">Stream tokens live</span>
+            </label>
+          </Field>
+          <Field label="Subagents">
+            <label className="flex items-center gap-2 cursor-pointer mt-2">
+              <input
+                type="checkbox"
+                checked={form.allow_subagents}
+                onChange={(e) => set('allow_subagents', e.target.checked)}
+                className="w-4 h-4 rounded text-indigo-600"
+              />
+              <span className="text-sm text-slate-600">Allow agent to delegate to child agents</span>
+              <span className="relative group cursor-help inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-200 text-slate-500 text-xs font-bold select-none flex-shrink-0">
+                ?
+                <span className="pointer-events-none absolute left-5 top-0 z-10 hidden group-hover:block w-64 rounded-lg bg-slate-800 text-white text-xs p-2 leading-relaxed shadow-lg">
+                  When enabled, the agent can create in-memory subagents and delegate specific tasks to them. Subagents inherit the parent&apos;s model and API settings, and run with half the parent&apos;s iteration limit.
+                </span>
+              </span>
             </label>
           </Field>
         </div>

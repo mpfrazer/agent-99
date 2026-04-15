@@ -17,6 +17,7 @@ export interface AgentConfig {
   temperature: number;
   api_base: string | null;
   stream_output: boolean;
+  allow_subagents: boolean;
 }
 
 export interface RunSummary {
