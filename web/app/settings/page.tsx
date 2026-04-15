@@ -48,7 +48,7 @@ function GoogleServiceCard({
     try {
       await api.saveCredentials(clientId, clientSecret);
       const { url } = await api.getAuthUrl();
-      window.open(url, '_blank', 'noopener,noreferrer');
+      window.location.href = url;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to start OAuth flow');
     } finally {
