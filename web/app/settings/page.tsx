@@ -36,7 +36,12 @@ function GoogleServiceCard({
   useEffect(() => {
     api.status().then(setStatus).catch(() => setStatus({ connected: false, email: null }));
     const params = new URLSearchParams(window.location.search);
-    if (params.get(callbackParam) === 'connected') {
+    const callbackStatus = params.get(callbackParam);
+    if (callbackStatus === 'connected') {
+      window.history.replaceState({}, '', '/settings');
+    } else if (callbackStatus === 'error') {
+      const detail = params.get('detail') || 'OAuth flow failed — check API logs for details.';
+      setError(detail);
       window.history.replaceState({}, '', '/settings');
     }
   }, []);
