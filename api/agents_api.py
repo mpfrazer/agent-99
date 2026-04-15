@@ -45,6 +45,7 @@ class AgentPayload(BaseModel):
     temperature: float = 0.7
     api_base: str | None = None
     stream_output: bool = True
+    allow_subagents: bool = False
 
 
 # ---------------------------------------------------------------------------

@@ -8,6 +8,7 @@ from typing import Any
 import litellm
 
 from agent99.config import AgentConfig
+from agent99.loop import make_spawn_subagent
 from agent99.memory import BaseMemory, NoneMemory
 from agent99.registry import ToolRegistry
 
@@ -33,6 +34,13 @@ async def run_agent_async(
     """
     memory = memory or NoneMemory()
     tool_schemas = registry.schemas(config.tools) if config.tools else []
+
+    if config.allow_subagents:
+        spawn_fn = make_spawn_subagent(config, registry)
+        extended = ToolRegistry()
+        extended._tools = {**registry._tools, "spawn_subagent": spawn_fn}
+        registry = extended
+        tool_schemas = tool_schemas + registry.schemas(["spawn_subagent"])
 
     messages: list[dict] = []
     if config.system_prompt:
