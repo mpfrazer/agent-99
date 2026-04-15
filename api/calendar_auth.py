@@ -2,6 +2,7 @@
 
 import os
 import secrets
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import RedirectResponse
@@ -28,8 +29,8 @@ _API_BASE = os.environ.get("API_BASE_URL", "http://localhost:8000")
 _WEB_BASE = os.environ.get("WEB_BASE_URL", "http://localhost:3000")
 _REDIRECT_URI = f"{_API_BASE}/api/calendar/callback"
 
-# In-memory CSRF state store  {state: True}
-_pending_states: dict[str, object] = {}
+# In-memory CSRF state store  {state: Flow}
+_pending_states: dict[str, Any] = {}
 
 
 # ---------------------------------------------------------------------------
