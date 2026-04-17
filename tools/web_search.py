@@ -35,7 +35,7 @@ def web_search(query: str, num_results: int = 10) -> str:
                 "Accept-Encoding": "gzip",
                 "X-Subscription-Token": api_key,
             },
-            params={"q": query, "count": num_results},
+            params={"q": query, "count": str(num_results)},
             timeout=10,
         )
         resp.raise_for_status()
