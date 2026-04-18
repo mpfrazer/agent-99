@@ -113,9 +113,13 @@ def _save_run(run: RunState, agent_raw: dict) -> None:
         frontmatter["schedule_id"] = run.schedule_id
     if agent_raw.get("api_base"):
         frontmatter["api_base"] = agent_raw["api_base"]
+    if run.error:
+        frontmatter["error"] = run.error
 
     content = f"---\n{yaml.safe_dump(frontmatter, default_flow_style=False)}---\n\n"
     content += f"## Input\n\n{run.user_input}\n\n"
+    if run.error:
+        content += f"## Error\n\n{run.error}\n"
     content += f"## Output\n\n{run.final_output}\n"
 
     path.write_text(content)
@@ -134,7 +138,7 @@ def _parse_run_file(path: Path) -> dict | None:
             output = body.split("## Output", 1)[1].strip()
         input_text = ""
         if "## Input" in body:
-            input_text = body.split("## Input", 1)[1].split("## Output")[0].strip()
+            input_text = body.split("## Input", 1)[1].split("## ")[0].strip()
         return {**fm, "user_input": input_text, "final_output": output}
     except Exception:
         return None
