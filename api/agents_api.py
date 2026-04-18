@@ -6,7 +6,7 @@ import yaml
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from agent99.config import AgentConfig
+from agent99.config import AgentConfig, normalize_agent_name
 from api.auth import require_auth
 
 router = APIRouter(prefix="/agents", tags=["agents"])
@@ -19,7 +19,7 @@ def _agents_dir() -> Path:
 
 
 def _agent_path(name: str) -> Path:
-    return _agents_dir() / f"{name}.yaml"
+    return _agents_dir() / f"{normalize_agent_name(name)}.yaml"
 
 
 def _load_agent(name: str) -> dict:

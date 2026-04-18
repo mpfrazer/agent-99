@@ -6,7 +6,7 @@ from typing import Annotated
 
 import typer
 
-from agent99.config import AgentConfig
+from agent99.config import AgentConfig, normalize_agent_name
 from agent99.loop import AgentLoop
 from agent99.memory import create_memory
 from agent99.providers import Provider
@@ -83,12 +83,17 @@ def new(
     agents_dir = Path.cwd() / "agents"
     agents_dir.mkdir(exist_ok=True)
 
-    output = agents_dir / f"{name}.yaml"
+    safe_name = normalize_agent_name(name)
+    if not safe_name:
+        typer.echo("Error: agent name is invalid after normalization.", err=True)
+        raise typer.Exit(code=1)
+
+    output = agents_dir / f"{safe_name}.yaml"
     if output.exists():
         typer.echo(f"Error: {output} already exists.", err=True)
         raise typer.Exit(code=1)
 
-    output.write_text(_NEW_AGENT_TEMPLATE.format(name=name))
+    output.write_text(_NEW_AGENT_TEMPLATE.format(name=safe_name))
     typer.echo(f"Created {output}")
 
 
