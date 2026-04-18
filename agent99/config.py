@@ -1,10 +1,23 @@
 """Pydantic models for YAML-defined agent configuration."""
 
+import re
 from pathlib import Path
 from typing import Literal
 
 import yaml
 from pydantic import BaseModel, Field, ValidationError, field_validator
+
+
+def normalize_agent_name(name: str) -> str:
+    """Normalize an agent name to lowercase kebab-case, safe for filenames and URLs.
+
+    Spaces and underscores become dashes; non-alphanumeric characters are removed;
+    consecutive dashes are collapsed.
+    """
+    name = re.sub(r"[\s_]+", "-", name.strip()).lower()
+    name = re.sub(r"[^a-z0-9-]", "", name)
+    name = re.sub(r"-+", "-", name).strip("-")
+    return name
 
 
 class MemoryConfig(BaseModel):
@@ -28,9 +41,10 @@ class AgentConfig(BaseModel):
     @field_validator("name")
     @classmethod
     def name_not_empty(cls, v: str) -> str:
-        if not v.strip():
+        normalized = normalize_agent_name(v)
+        if not normalized:
             raise ValueError("name must not be empty")
-        return v
+        return normalized
 
     @field_validator("model")
     @classmethod
