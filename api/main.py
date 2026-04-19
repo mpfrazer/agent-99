@@ -5,9 +5,6 @@ import os
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-
-load_dotenv()
-
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -21,6 +18,8 @@ from api.runs import router as runs_router
 from api.scheduler import scheduler_loop
 from api.schedules import router as schedules_router
 from api.schedules_db import init_db
+
+load_dotenv()
 
 
 @asynccontextmanager
