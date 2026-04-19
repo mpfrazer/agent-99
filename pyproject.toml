@@ -14,6 +14,7 @@ dependencies = [
     "typer",
     "requests",
     "beautifulsoup4",
+    "python-dotenv",
 ]
 
 [project.optional-dependencies]
