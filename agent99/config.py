@@ -37,6 +37,7 @@ class AgentConfig(BaseModel):
     api_base: str | None = None
     stream_output: bool = True
     allow_subagents: bool = False
+    request_delay: float = 0.0  # seconds to sleep before each LLM call (rate-limit tuning)
 
     @field_validator("name")
     @classmethod

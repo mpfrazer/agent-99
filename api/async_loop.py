@@ -91,64 +91,84 @@ async def run_agent_async(
             ), level="warning")
 
     for i in range(config.max_iterations):
+        # Proactive delay between iterations (rate-limit tuning)
+        if config.request_delay > 0 and i > 0:
+            if debug:
+                await _dbg(queue, f"Waiting {config.request_delay}s (request_delay) before next LLM call")
+            await asyncio.sleep(config.request_delay)
+
         # Check for cancellation before each LLM call
         await asyncio.sleep(0)
 
         if debug:
             await _dbg(queue, f"Iteration {i + 1}/{config.max_iterations} — sending {len(messages)} message(s) to LLM")
 
-        try:
-            if stream:
-                full_content, tool_calls_raw = await _stream_completion(
-                    messages, base_kwargs, queue, debug=debug
-                )
-            else:
-                response = await litellm.acompletion(messages=messages, **base_kwargs)
-                message = response.choices[0].message
-                full_content = message.content or ""
-                tool_calls_raw = message.tool_calls or []
-
-                if debug:
-                    finish_reason = response.choices[0].finish_reason
-                    reasoning = getattr(message, "reasoning_content", None) or ""
-                    usage = getattr(response, "usage", None)
-                    usage_str = (
-                        f", tokens: {usage.prompt_tokens} in / {usage.completion_tokens} out"
-                        if usage else ""
+        backoff = 5.0
+        while True:
+            try:
+                if stream:
+                    full_content, tool_calls_raw = await _stream_completion(
+                        messages, base_kwargs, queue, debug=debug
                     )
+                else:
+                    response = await litellm.acompletion(messages=messages, **base_kwargs)
+                    message = response.choices[0].message
+                    full_content = message.content or ""
+                    tool_calls_raw = message.tool_calls or []
+
+                    if debug:
+                        finish_reason = response.choices[0].finish_reason
+                        reasoning = getattr(message, "reasoning_content", None) or ""
+                        usage = getattr(response, "usage", None)
+                        usage_str = (
+                            f", tokens: {usage.prompt_tokens} in / {usage.completion_tokens} out"
+                            if usage else ""
+                        )
+                        await _dbg(queue, (
+                            f"LLM response — finish_reason={finish_reason!r}, "
+                            f"content={len(full_content)} chars, "
+                            f"tool_calls={len(tool_calls_raw)}{usage_str}"
+                        ))
+                        if reasoning:
+                            await _dbg(queue, (
+                                f"Model thinking/reasoning content detected ({len(reasoning)} chars). "
+                                f"This is internal chain-of-thought output and is NOT included in the "
+                                f"final response. If the response appears empty, the model may have "
+                                f"spent all its output on reasoning without producing visible text."
+                            ), level="warning")
+                        if not full_content and not tool_calls_raw:
+                            await _dbg(queue, (
+                                "LLM returned empty content with no tool calls — the run will complete "
+                                "with no output. Possible causes: (1) model is in thinking-only mode "
+                                "(qwen3/deepseek-r1 with reasoning disabled in litellm), "
+                                "(2) connection reached the model but response body was empty, "
+                                "(3) model does not support the tool schema format."
+                            ), level="warning")
+
+                    if full_content:
+                        await queue.put(LoopEvent("chunk", {"content": full_content}))
+
+                break  # successful call — exit retry loop
+
+            except asyncio.CancelledError:
+                raise
+            except litellm.RateLimitError as exc:
+                if debug:
+                    await _dbg(queue, f"Rate limit hit — retrying in {backoff:.0f}s: {exc}", level="warning")
+                else:
+                    await queue.put(LoopEvent("debug", {
+                        "message": f"Rate limit hit — retrying in {backoff:.0f}s",
+                        "level": "warning",
+                    }))
+                await asyncio.sleep(backoff)
+                backoff = min(backoff * 2, 120)
+            except Exception as exc:
+                if debug:
                     await _dbg(queue, (
-                        f"LLM response — finish_reason={finish_reason!r}, "
-                        f"content={len(full_content)} chars, "
-                        f"tool_calls={len(tool_calls_raw)}{usage_str}"
-                    ))
-                    if reasoning:
-                        await _dbg(queue, (
-                            f"Model thinking/reasoning content detected ({len(reasoning)} chars). "
-                            f"This is internal chain-of-thought output and is NOT included in the "
-                            f"final response. If the response appears empty, the model may have "
-                            f"spent all its output on reasoning without producing visible text."
-                        ), level="warning")
-                    if not full_content and not tool_calls_raw:
-                        await _dbg(queue, (
-                            "LLM returned empty content with no tool calls — the run will complete "
-                            "with no output. Possible causes: (1) model is in thinking-only mode "
-                            "(qwen3/deepseek-r1 with reasoning disabled in litellm), "
-                            "(2) connection reached the model but response body was empty, "
-                            "(3) model does not support the tool schema format."
-                        ), level="warning")
-
-                if full_content:
-                    await queue.put(LoopEvent("chunk", {"content": full_content}))
-
-        except asyncio.CancelledError:
-            raise
-        except Exception as exc:
-            if debug:
-                await _dbg(queue, (
-                    f"LLM call raised {type(exc).__name__}: {exc}\n"
-                    f"{traceback.format_exc()}"
-                ), level="error")
-            raise
+                        f"LLM call raised {type(exc).__name__}: {exc}\n"
+                        f"{traceback.format_exc()}"
+                    ), level="error")
+                raise
 
         if not tool_calls_raw:
             memory.add("user", user_input)

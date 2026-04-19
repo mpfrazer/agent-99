@@ -1,6 +1,7 @@
 """Agent loop: think → act → observe, repeat."""
 
 import json
+import time
 from collections.abc import Callable
 
 from agent99.config import AgentConfig
@@ -92,11 +93,26 @@ class AgentLoop:
 
         messages.append({"role": "user", "content": user_input})
 
-        for _ in range(self.config.max_iterations):
-            response = self.provider.complete(
-                messages,
-                tools=self._tool_schemas if self._tool_schemas else None,
-            )
+        for i in range(self.config.max_iterations):
+            if self.config.request_delay > 0 and i > 0:
+                time.sleep(self.config.request_delay)
+
+            backoff = 5.0
+            while True:
+                try:
+                    response = self.provider.complete(
+                        messages,
+                        tools=self._tool_schemas if self._tool_schemas else None,
+                    )
+                    break
+                except Exception as exc:
+                    import litellm
+                    if isinstance(exc, litellm.RateLimitError):
+                        print(f"Rate limit hit — retrying in {backoff:.0f}s")
+                        time.sleep(backoff)
+                        backoff = min(backoff * 2, 120)
+                    else:
+                        raise
 
             if not response.tool_calls:
                 result = response.content or ""
