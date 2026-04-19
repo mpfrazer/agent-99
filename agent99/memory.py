@@ -84,8 +84,14 @@ class MarkdownMemory(BaseMemory):
     Passing ``path=None`` defaults to ``memory.md`` in the current directory.
     """
 
-    # Matches section dividers written by this class: "## role — ISO-timestamp"
-    _SECTION_RE = re.compile(r"\n## ")
+    _VALID_ROLES = frozenset({"user", "assistant", "system", "tool"})
+    # Matches only the exact format written by add(): "## role — ISO-timestamp"
+    # The em dash (—) and timestamp anchor prevent matching arbitrary ## headings
+    # inside message content.
+    _ENTRY_RE = re.compile(
+        r"^## (\w+) — \S+\n\n(.*?)(?=\n## \w+ — \S|\Z)",
+        re.MULTILINE | re.DOTALL,
+    )
 
     def __init__(self, path: str = "memory.md") -> None:
         self._path = Path(path)
@@ -101,13 +107,12 @@ class MarkdownMemory(BaseMemory):
 
     def history(self) -> list[dict]:
         text = self._path.read_text(encoding="utf-8")
-        # Split on "\n## " — the separator written between entries
-        parts = self._SECTION_RE.split(text)
         messages: list[dict] = []
-        for part in parts[1:]:  # parts[0] is the "# Agent Memory" title block
-            header, _, body = part.partition("\n")
-            role = header.split(" — ", 1)[0].strip()
-            messages.append({"role": role, "content": body.strip()})
+        for m in self._ENTRY_RE.finditer(text):
+            role = m.group(1).strip()
+            if role not in self._VALID_ROLES:
+                continue
+            messages.append({"role": role, "content": m.group(2).strip()})
         return messages
 
     def clear(self) -> None:
