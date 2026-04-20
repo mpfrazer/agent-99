@@ -104,7 +104,8 @@ async def run_agent_async(
             await _dbg(queue, f"Iteration {i + 1}/{config.max_iterations} — sending {len(messages)} message(s) to LLM")
 
         backoff = 5.0
-        full_content, tool_calls_raw = "", []
+        full_content: str = ""
+        tool_calls_raw: list[dict] = []
         while True:
             try:
                 if stream:
