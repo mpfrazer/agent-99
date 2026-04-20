@@ -104,6 +104,7 @@ async def run_agent_async(
             await _dbg(queue, f"Iteration {i + 1}/{config.max_iterations} — sending {len(messages)} message(s) to LLM")
 
         backoff = 5.0
+        full_content, tool_calls_raw = "", []
         while True:
             try:
                 if stream:
@@ -152,16 +153,11 @@ async def run_agent_async(
 
             except asyncio.CancelledError:
                 raise
-            except litellm.RateLimitError as exc:
-                if debug:
-                    await _dbg(queue, f"Rate limit hit — retrying in {backoff:.0f}s: {exc}", level="warning")
-                else:
-                    await queue.put(LoopEvent("debug", {
-                        "message": f"Rate limit hit — retrying in {backoff:.0f}s",
-                        "level": "warning",
-                    }))
+            except litellm.RateLimitError:
+                await queue.put(LoopEvent("rate_limit", {"retry_in": backoff}))
                 await asyncio.sleep(backoff)
                 backoff = min(backoff * 2, 120)
+                full_content, tool_calls_raw = "", []  # reset accumulators before retry
             except Exception as exc:
                 if debug:
                     await _dbg(queue, (
